@@ -36,6 +36,13 @@ firebase.initializeApp({
 var db = firebase.database().ref("messages");
 const mp = document.getElementById("mp");
 
+document.addEventListener('touchmove', function(event) {
+  db.set({
+    x: event.touches[0].clientX - 25,
+    y: event.touches[0].clientY - 25
+  });
+});
+
 document.addEventListener('mousemove', function(event) {
   db.set({
     x: event.clientX - 25,
