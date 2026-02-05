@@ -2,25 +2,23 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Firebase Live Messages</title>
+  <title>Firebase Live Video Sharing</title>
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/simple-peer@latest/dist/simple-peer.min.js"></script>
 </head>
 <body>
 
-<div id="mp"></div>
+<video id="local-video" width="640" height="480" autoplay></video>
+<video id="remote-video" width="640" height="480" autoplay></video>
 
-<style>#mp{
-  background-color: rgba(196, 53, 196, 0.3);
-  height: 50px;
-  width: 50px;
-  border-radius: 50px;
-  border: solid 2px black;
-  position: absolute;
-  top: 0;
-  left: 0;
-}</style>
+<style>
+#local-video, #remote-video{
+  display: inline-block;
+  border: 2px solid black;
+}
+</style>
 
 <script>
 firebase.initializeApp({
@@ -33,27 +31,25 @@ firebase.initializeApp({
   appId: "1:995423221322:web:20be1f7e6f4827134798b3"
 });
 
-var db = firebase.database().ref("messages");
-const mp = document.getElementById("mp");
+const localVideo = document.getElementById('local-video');
+const remoteVideo = document.getElementById('remote-video');
 
-document.addEventListener('touchmove', function(event) {
-  db.set({
-    x: event.touches[0].clientX - 25,
-    y: event.touches[0].clientY - 25
-  });
-});
-
-document.addEventListener('mousemove', function(event) {
-  db.set({
-    x: event.clientX - 25,
-    y: event.clientY - 25
-  });
-});
-
-db.on('value', function(data) {
-  mp.style.top = data.val().y + 'px';
-  mp.style.left = data.val().x + 'px';
-});
+navigator.mediaDevices.getUserMedia({video: true, audio: true})
+  .then(stream => {
+    localVideo.srcObject = stream;
+    return new SimplePeer({
+      initiator: location.hash === '#init',
+      stream: stream,
+      referrer: 'https://hyper-e2e9f.firebaseapp.com',
+      config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
+    });
+  })
+  .then(peer => {
+    peer.on('stream', stream => {
+      remoteVideo.srcObject = stream;
+    });
+  })
+  .catch(error => console.error('Error:', error));
 
 </script>
 
