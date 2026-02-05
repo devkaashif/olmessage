@@ -1,29 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Firebase Live Messages</title>
-
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-</head>
-<body>
-
-<p id="mxy"></p>
-
-<div id="mb"></div>
-
-<style>
-#mb{
-  height: 50px;
-  width: 50px;
-  background-color: rgba(160, 247, 247, 0.5);
-  border: solid black 3px;
-  border-radius: 100px;
-
-}
-
-</style>
 <script>
 firebase.initializeApp({
   apiKey: "AIzaSyDvCoFrxTR4ytDVLBpiMArHzdc_AiYBkMU",
@@ -40,27 +14,34 @@ const mb = document.getElementById("mb");
 
 let x = 0, y = 0;
 
-// Send (once per frame)
+// Desktop
 document.addEventListener("mousemove", e => {
-  x = e.clientX - 34;
-  y = e.clientY - 29;
+  x = e.clientX - 25;
+  y = e.clientY - 25;
 }, { passive: true });
 
+// Mobile
+document.addEventListener("touchstart", handleTouch, { passive: true });
+document.addEventListener("touchmove", handleTouch, { passive: true });
+
+function handleTouch(e) {
+  const t = e.touches[0];
+  if (!t) return;
+  x = t.clientX - 25;
+  y = t.clientY - 25;
+}
+
+// Send position
 function send() {
   ref.set({ x, y });
   requestAnimationFrame(send);
 }
 requestAnimationFrame(send);
 
-// Receive
+// Receive position
 ref.on("value", s => {
   const p = s.val();
   if (!p) return;
   mb.style.transform = `translate3d(${p.x}px, ${p.y}px, 0)`;
 });
 </script>
-
-
-</body>
-</html>
-
