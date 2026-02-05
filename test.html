@@ -2,24 +2,28 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Firebase Live Video Sharing</title>
+  <title>Firebase Live Messages</title>
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/simple-peer@latest/dist/simple-peer.min.js"></script>
 </head>
 <body>
 
-<video id="local-video" width="640" height="480" autoplay></video>
-<video id="remote-video" width="640" height="480" autoplay></video>
+<p id="mxy"></p>
+
+<div id="mb"></div>
 
 <style>
-#local-video, #remote-video{
-  display: inline-block;
-  border: 2px solid black;
-}
-</style>
+#mb{
+  height: 50px;
+  width: 50px;
+  background-color: rgba(160, 247, 247, 0.5);
+  border: solid black 3px;
+  border-radius: 100px;
 
+}
+
+</style>
 <script>
 firebase.initializeApp({
   apiKey: "AIzaSyDvCoFrxTR4ytDVLBpiMArHzdc_AiYBkMU",
@@ -31,27 +35,31 @@ firebase.initializeApp({
   appId: "1:995423221322:web:20be1f7e6f4827134798b3"
 });
 
-const localVideo = document.getElementById('local-video');
-const remoteVideo = document.getElementById('remote-video');
+const ref = firebase.database().ref("cursor");
+const mb = document.getElementById("mb");
 
-navigator.mediaDevices.getUserMedia({video: true, audio: true})
-  .then(stream => {
-    localVideo.srcObject = stream;
-    return new SimplePeer({
-      initiator: location.hash === '#init',
-      stream: stream,
-      referrer: 'https://hyper-e2e9f.firebaseapp.com',
-      config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
-    });
-  })
-  .then(peer => {
-    peer.on('stream', stream => {
-      remoteVideo.srcObject = stream;
-    });
-  })
-  .catch(error => console.error('Error:', error));
+let x = 0, y = 0;
 
+// Send (once per frame)
+document.addEventListener("mousemove", e => {
+  x = e.clientX - 34;
+  y = e.clientY - 29;
+}, { passive: true });
+
+function send() {
+  ref.set({ x, y });
+  requestAnimationFrame(send);
+}
+requestAnimationFrame(send);
+
+// Receive
+ref.on("value", s => {
+  const p = s.val();
+  if (!p) return;
+  mb.style.transform = `translate3d(${p.x}px, ${p.y}px, 0)`;
+});
 </script>
+
 
 </body>
 </html>
